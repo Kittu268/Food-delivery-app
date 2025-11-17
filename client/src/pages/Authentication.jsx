@@ -76,7 +76,7 @@ const Text = styled.p`
     font-size: 14px;
   }
 `;
-const TextButton = styled.div`
+const TextButton = styled.span`
   color: ${({ theme }) => theme.primary};
   cursor: pointer;
   transition: all 0.3s ease;

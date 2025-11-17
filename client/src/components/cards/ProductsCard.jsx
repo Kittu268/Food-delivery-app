@@ -143,7 +143,7 @@ const ProductsCard = ({ product }) => {
 
   const addFavourite = async () => {
     setFavoriteLoading(true);
-    const token = localStorage.getItem("krist-app-token");
+    const token = localStorage.getItem("foodeli-app-token");
     await addToFavourite(token, { productId: product?._id })
       .then((res) => {
         setFavorite(true);
@@ -163,7 +163,7 @@ const ProductsCard = ({ product }) => {
 
   const removeFavourite = async () => {
     setFavoriteLoading(true);
-    const token = localStorage.getItem("krist-app-token");
+    const token = localStorage.getItem("foodeli-app-token");
     await deleteFromFavourite(token, { productId: product?._id })
       .then((res) => {
         setFavorite(false);
@@ -182,7 +182,7 @@ const ProductsCard = ({ product }) => {
 
   const checkFavorite = async () => {
     setFavoriteLoading(true);
-    const token = localStorage.getItem("krist-app-token");
+    const token = localStorage.getItem("foodeli-app-token");
     await getFavourite(token, { productId: product?._id })
       .then((res) => {
         const isFavorite = res.data?.some(
@@ -205,7 +205,7 @@ const ProductsCard = ({ product }) => {
   };
 
   const addCart = async (id) => {
-    const token = localStorage.getItem("krist-app-token");
+    const token = localStorage.getItem("foodeli-app-token");
     await addToCart(token, { productId: id, quantity: 1 })
       .then((res) => {
         navigate("/cart");

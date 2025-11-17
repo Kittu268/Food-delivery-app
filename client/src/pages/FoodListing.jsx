@@ -93,9 +93,8 @@ const FoodListing = () => {
     // Call the API function for filtered products
     await getAllProducts(
       selectedCategories.length > 0
-        ? `minPrice=${priceRange[0]}&maxPrice=${
-            priceRange[1]
-          }&categories=${selectedCategories.join(",")}`
+        ? `minPrice=${priceRange[0]}&maxPrice=${priceRange[1]
+        }&categories=${selectedCategories.join(",")}`
         : `minPrice=${priceRange[0]}&maxPrice=${priceRange[1]}`
     ).then((res) => {
       setProducts(res.data);
@@ -112,12 +111,12 @@ const FoodListing = () => {
       <Filters>
         <Menu>
           {filter.map((filters) => (
-            <FilterSection>
+            <FilterSection key={filters.value}>
               <Title>{filters.name}</Title>
               {filters.value === "price" ? (
                 <Slider
-                  aria-label="Price"
-                  defaultValue={priceRange}
+                  getAriaLabel={() => "Price range"}
+                  value={priceRange}
                   min={0}
                   max={1000}
                   valueLabelDisplay="auto"
@@ -137,8 +136,8 @@ const FoodListing = () => {
                         setSelectedCategories((prevCategories) =>
                           prevCategories.includes(item)
                             ? prevCategories.filter(
-                                (category) => category !== item
-                              )
+                              (category) => category !== item
+                            )
                             : [...prevCategories, item]
                         )
                       }

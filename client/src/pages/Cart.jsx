@@ -153,7 +153,7 @@ const Cart = () => {
 
   const getProducts = async () => {
     setLoading(true);
-    const token = localStorage.getItem("krist-app-token");
+    const token = localStorage.getItem("foodeli-app-token");
     await getCart(token).then((res) => {
       setProducts(res.data);
       setLoading(false);
@@ -192,7 +192,7 @@ const Cart = () => {
         return;
       }
 
-      const token = localStorage.getItem("krist-app-token");
+      const token = localStorage.getItem("foodeli-app-token");
       const totalAmount = calculateSubtotal().toFixed(2);
       const orderDetails = {
         products,
@@ -226,7 +226,7 @@ const Cart = () => {
   }, [reload]);
 
   const addCart = async (id) => {
-    const token = localStorage.getItem("krist-app-token");
+    const token = localStorage.getItem("foodeli-app-token");
     await addToCart(token, { productId: id, quantity: 1 })
       .then((res) => {
         setReload(!reload);
@@ -243,7 +243,7 @@ const Cart = () => {
   };
 
   const removeCart = async (id, quantity, type) => {
-    const token = localStorage.getItem("krist-app-token");
+    const token = localStorage.getItem("foodeli-app-token");
     let qnt = quantity > 0 ? 1 : null;
     if (type === "full") qnt = null;
     await deleteFromCart(token, {
