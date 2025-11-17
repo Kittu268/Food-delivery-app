@@ -10,7 +10,8 @@ export const UserSignIn = async (data) => await API.post("/user/signin", data);
 
 //products
 export const getAllProducts = async (filter) =>
-  await API.get(`/food?${filter}`, filter);
+  await API.get(`/food?${filter}`);
+
 
 export const getProductDetails = async (id) => await API.get(`/food/${id}`);
 
