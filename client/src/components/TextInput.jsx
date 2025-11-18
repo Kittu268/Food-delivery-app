@@ -7,6 +7,12 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   gap: 6px;
+  /* Use $small prop */
+  ${({ $small }) =>
+    $small &&
+    `
+    font-size: 8px;
+  `}
 `;
 
 const Label = styled.label`
@@ -18,8 +24,9 @@ const Label = styled.label`
     `
     color: ${theme.red};
   `}
-  ${({ small }) =>
-    small &&
+  /* Use $small prop */
+  ${({ $small }) =>
+    $small &&
     `
     font-size: 8px;
   `}
@@ -59,8 +66,9 @@ const OutlinedInput = styled.div`
     min-height: ${height}
   `}
 
-  ${({ small }) =>
-    small &&
+  /* Use $small prop */
+  ${({ $small }) =>
+    $small &&
     `
     border-radius: 6px;
     padding: 8px 10px;
@@ -84,8 +92,9 @@ const Input = styled.input`
   &:focus {
     outline: none;
   }
-  ${({ small }) =>
-    small &&
+  /* Use $small prop */
+  ${({ $small }) =>
+    $small &&
     `
     font-size: 12px;
   `}
@@ -97,16 +106,24 @@ const Input = styled.input`
   `} ${({ theme }) => theme.popup_text_secondary};
 `;
 
-const Error = styled.p`
+const Error = styled.p.withConfig({
+  shouldForwardProp: (prop) => prop !== "small" && prop !== "popup",
+})`
   font-size: 12px;
   margin: 0px 4px;
-  color: ${({ theme }) => theme.red};
+  color: ${({ theme }) => theme.error};
   ${({ small }) =>
     small &&
     `
-    font-size: 8px;
+    font-size: 12px;
+  `}
+  ${({ popup, theme }) =>
+    popup &&
+    `
+    color: ${theme.popup_text_secondary};
   `}
 `;
+
 
 const ChipWrapper = styled.div`
   display: flex;
@@ -155,12 +172,15 @@ const TextInput = ({
   };
 
   return (
-    <Container small={small}>
-      <Label small={small} popup={popup} error={error}>
+    // Pass prop as $small
+    <Container $small={small}>
+      {/* Pass prop as $small */}
+      <Label $small={small} popup={popup} error={error}>
         {label}
       </Label>
       <OutlinedInput
-        small={small}
+        // Pass prop as $small
+        $small={small}
         popup={popup}
         error={error}
         chipableInput={chipableInput}
@@ -188,7 +208,8 @@ const TextInput = ({
           <>
             <Input
               popup={popup}
-              small={small}
+              // Pass prop as $small
+              $small={small}
               as={textArea ? "textarea" : "input"}
               name={name}
               rows={rows}
@@ -215,7 +236,8 @@ const TextInput = ({
         )}
       </OutlinedInput>
       {error && (
-        <Error small={small} popup={popup}>
+        // Pass prop as $small
+        <Error $small={small} popup={popup}>
           {error}
         </Error>
       )}
