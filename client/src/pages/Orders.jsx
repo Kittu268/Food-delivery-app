@@ -5,6 +5,7 @@ import { CircularProgress } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { openSnackbar } from "../redux/reducers/SnackbarSlice";
 
+// ... (styled components are unchanged) ...
 const Container = styled.div`
   padding: 20px 30px;
   padding-bottom: 200px;
@@ -134,6 +135,7 @@ const NoOrders = styled.div`
   margin-top: 40px;
 `;
 
+
 const Orders = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
@@ -156,49 +158,26 @@ const Orders = () => {
       
       console.log("Response status:", res.status);
       console.log("Response.data:", res.data);
+      console.log("Response.data keys:", Object.keys(res.data || {}));
 
-      // --- UNIVERSAL DEEP ARRAY EXTRACTOR ---
-      function findFirstArray(obj) {
-        if (!obj || typeof obj !== "object") return null;
 
-        // if obj itself is an array, return it
-        if (Array.isArray(obj)) return obj;
+      // --- REVERTED FIX ---
+      // 1. Explicitly get `res.data.orders`. If it doesn't exist, default to an empty array.
+      const ordersArray = res.data?.orders || [];
+      
+      // 2. Filter out any `null` or `undefined` items from the array to prevent crash
+      const validOrders = ordersArray.filter(order => order != null); 
+      // --- END REVERTED FIX ---
+      
+      console.log("Extracted valid orders:", validOrders);
 
-        // search nested objects
-        for (const key of Object.keys(obj)) {
-          const val = obj[key];
+      setOrders(validOrders);
 
-          if (Array.isArray(val)) {
-            return val; // found array
-          }
-
-          if (typeof val === "object") {
-            const nested = findFirstArray(val);
-            if (nested) return nested;
-          }
-        }
-
-        return null; // no array found
-      }
-
-      const ordersArray = findFirstArray(res.data);
-
-      console.log("Extracted orders:", ordersArray);
-
-      if (Array.isArray(ordersArray)) {
-        setOrders(ordersArray);
-      } else {
-        console.warn("No array found in response, setting empty list.");
-        setOrders([]);
-      }
-      // --- END UNIVERSAL EXTRACTOR ---
-
-      // Update debug info based on the new logic
       setDebugInfo({
         status: res.status,
         dataKeys: Object.keys(res.data || {}),
-        foundArray: Array.isArray(ordersArray),
-        ordersCount: Array.isArray(ordersArray) ? ordersArray.length : 0,
+        hasOrdersKey: res.data?.hasOwnProperty('orders'),
+        ordersCount: validOrders.length,
         timestamp: new Date().toLocaleTimeString(),
       });
 
@@ -253,6 +232,8 @@ const Orders = () => {
               <NoOrders>No orders found</NoOrders>
             ) : (
               orders.map((order) => (
+                // The error "Cannot read properties of null (reading '_id')"
+                // is fixed because we filtered out `null` orders above.
                 <OrderCard key={order._id}>
                   <OrderHeader>
                     <div>
@@ -271,7 +252,8 @@ const Orders = () => {
                     <div style={{ fontWeight: "600", fontSize: "16px" }}>
                       Products ({(order.products || []).length}):
                     </div>
-                    {(order.products || []).map((item, idx) => {
+                    {/* Add filter here just in case a product item is null */}
+                    {(order.products || []).filter(item => item != null).map((item, idx) => {
                       const prod = item?.product || {};
                       return (
                         <ProductItem key={prod._id || `${order._id}-${idx}`}>
