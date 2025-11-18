@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Button from "../components/Button";
 import {
-  FavoriteBorder,
   FavoriteBorderOutlined,
   FavoriteRounded,
 } from "@mui/icons-material";
@@ -11,7 +10,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   addToCart,
   addToFavourite,
-  deleteFromCart,
   deleteFromFavourite,
   getFavourite,
   getProductDetails,
@@ -143,6 +141,7 @@ const FoodDetails = () => {
   const [favorite, setFavorite] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [cartLoading, setCartLoading] = useState(false);
+  const [orderLoading, setOrderLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [product, setProduct] = useState();
 
@@ -214,10 +213,71 @@ const FoodDetails = () => {
       });
   };
 
+  const orderNow = async () => {
+    setOrderLoading(true);
+    try {
+      const token = localStorage.getItem("foodeli-app-token");
+      if (!token) {
+        dispatch(
+          openSnackbar({
+            message: "Please login to place an order",
+            severity: "error",
+          })
+        );
+        setOrderLoading(false);
+        return;
+      }
+
+      if (!product?._id) {
+        dispatch(
+          openSnackbar({
+            message: "Product information unavailable",
+            severity: "error",
+          })
+        );
+        setOrderLoading(false);
+        return;
+      }
+
+      console.log("Adding to cart - Product ID:", product._id);
+
+      // Add single item to cart and wait for response
+      const response = await addToCart(token, { productId: product._id, quantity: 1 });
+      console.log("Add to cart response:", response);
+
+      dispatch(
+        openSnackbar({
+          message: "Item added to cart! Redirecting...",
+          severity: "success",
+        })
+      );
+
+      // Small delay to ensure backend sync before navigation
+      setTimeout(() => {
+        navigate("/cart");
+      }, 500);
+    } catch (err) {
+      console.error("Order error:", err);
+      console.error("Error details:", err?.response?.data);
+      
+      dispatch(
+        openSnackbar({
+          message:
+            err?.response?.data?.message ||
+            err?.message ||
+            "Failed to add to cart. Please try again.",
+          severity: "error",
+        })
+      );
+      setOrderLoading(false);
+    }
+  };
+
   useEffect(() => {
     getProduct();
     checkFavorite();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const addCart = async () => {
     setCartLoading(true);
@@ -276,7 +336,12 @@ const FoodDetails = () => {
                 isLoading={cartLoading}
                 onClick={() => addCart()}
               />
-              <Button text="Order Now" full />
+              <Button
+                text="Order Now"
+                full
+                isLoading={orderLoading}
+                onClick={() => orderNow()}
+              />
               <Button
                 leftIcon={
                   favorite ? (

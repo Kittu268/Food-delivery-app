@@ -134,6 +134,8 @@ const TextInput = ({
   value,
   error,
   handelChange,
+  handleChange,
+  onChange,
   textArea,
   rows,
   columns,
@@ -146,6 +148,12 @@ const TextInput = ({
   password,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+
+  const handleChangeInternal = (e) => {
+    const fn = handelChange || handleChange || onChange;
+    if (typeof fn === "function") fn(e);
+  };
+
   return (
     <Container small={small}>
       <Label small={small} popup={popup} error={error}>
@@ -187,7 +195,7 @@ const TextInput = ({
               columns={columns}
               placeholder={placeholder}
               value={value}
-              onChange={(e) => handelChange(e)}
+              onChange={handleChangeInternal}
               type={password && !showPassword ? "password" : "text"}
             />
             {password && (

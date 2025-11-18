@@ -104,6 +104,7 @@ const FoodListing = () => {
 
   useEffect(() => {
     getFilteredProductsData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [priceRange, selectedCategories]);
 
   return (

@@ -10,7 +10,6 @@ import Cart from "./pages/Cart";
 import FoodDetails from "./pages/FoodDetails";
 import FoodListing from "./pages/FoodListing";
 import { useSelector } from "react-redux";
-// Import the new pages
 import Orders from "./pages/Orders";
 import Contact from "./pages/Contact";
 
@@ -18,7 +17,6 @@ const Container = styled.div``;
 
 function App() {
   const { currentUser } = useSelector((state) => state.user);
-  const { open, message, severity } = useSelector((state) => state.snackbar);
   const [openAuth, setOpenAuth] = useState(false);
   return (
     <ThemeProvider theme={lightTheme}>
@@ -35,7 +33,6 @@ function App() {
             <Route path="/cart" exact element={<Cart />} />
             <Route path="/dishes/:id" exact element={<FoodDetails />} />
             <Route path="/dishes" exact element={<FoodListing />} />
-            {/* Add the new routes */}
             <Route path="/orders" exact element={<Orders />} />
             <Route path="/contact" exact element={<Contact />} />
           </Routes>

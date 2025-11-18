@@ -12,7 +12,6 @@ export const UserSignIn = async (data) => await API.post("/user/signin", data);
 export const getAllProducts = async (filter) =>
   await API.get(`/food?${filter}`);
 
-
 export const getProductDetails = async (id) => await API.get(`/food/${id}`);
 
 //Cart
@@ -21,10 +20,11 @@ export const getCart = async (token) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
-export const addToCart = async (token, data) =>
-  await API.post(`/user/cart/`, data, {
+export const addToCart = async (token, data) => {
+  return await API.post("/user/cart", data, {
     headers: { Authorization: `Bearer ${token}` },
   });
+};
 
 export const deleteFromCart = async (token, data) =>
   await API.patch(`/user/cart/`, data, {
@@ -49,12 +49,20 @@ export const deleteFromFavourite = async (token, data) =>
   });
 
 //Orders
-export const placeOrder = async (token, data) =>
-  await API.post(`/user/order/`, data, {
+export const placeOrder = async (token, data) => {
+  console.log("🔹 API: Placing order with data:", data);
+  const response = await API.post(`/user/order`, data, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  console.log("🔹 API: Place order response:", response.data);
+  return response;
+};
 
-export const getOrders = async (token) =>
-  await API.get(`/user/order/`, {
+export const getOrders = async (token) => {
+  console.log("🔹 API: Fetching orders");
+  const response = await API.get(`/user/order`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  console.log("🔹 API: Get orders response:", response.data);
+  return response;
+};

@@ -138,20 +138,68 @@ const Orders = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
+  const [debugInfo, setDebugInfo] = useState(null);
 
   const fetchOrders = async () => {
     setLoading(true);
     const token = localStorage.getItem("foodeli-app-token");
+    
     try {
+      if (!token) {
+        throw new Error("No token");
+      }
+
+      console.log("\n========== ORDERS PAGE - FETCHING ==========");
+      console.log("Token:", token.substring(0, 30) + "...");
+
       const res = await getOrders(token);
-      setOrders(res.data);
+      
+      console.log("Response status:", res.status);
+      console.log("Response object keys:", Object.keys(res));
+      console.log("Response.data:", res.data);
+      console.log("Response.data keys:", Object.keys(res.data || {}));
+      console.log("Response.data type:", typeof res.data);
+      console.log("Response.data.orders exists?", !!res.data?.orders);
+      console.log("Response.data.orders type:", typeof res.data?.orders);
+
+      let fetched = res.data?.orders;
+      
+      console.log("Extracted 'orders':", fetched);
+      console.log("Is array?", Array.isArray(fetched));
+
+      if (!Array.isArray(fetched)) {
+        console.warn("Not an array, setting to []");
+        fetched = [];
+      }
+
+      console.log("Final fetched count:", fetched.length);
+      console.log("========== END FETCH ==========\n");
+
+      setDebugInfo({
+        status: res.status,
+        dataKeys: Object.keys(res.data || {}),
+        hasOrdersKey: !!res.data?.orders,
+        ordersType: typeof res.data?.orders,
+        ordersCount: Array.isArray(fetched) ? fetched.length : 0,
+        timestamp: new Date().toLocaleTimeString(),
+      });
+
+      setOrders(fetched);
     } catch (err) {
+      console.error("❌ Fetch error:", err.message);
+      
+      setDebugInfo({
+        error: err.message,
+        status: err?.response?.status,
+      });
+
       dispatch(
         openSnackbar({
           message: err.message || "Failed to fetch orders",
           severity: "error",
         })
       );
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -159,61 +207,64 @@ const Orders = () => {
 
   useEffect(() => {
     fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <Container>
       <Section>
         <Title>Your Orders</Title>
+        {debugInfo && (
+          <div style={{ 
+            fontSize: "11px", 
+            padding: "10px", 
+            background: "#f5f5f5", 
+            borderRadius: "4px",
+            marginBottom: "15px",
+            border: "1px solid #ddd"
+          }}>
+            <pre style={{ margin: 0 }}>{JSON.stringify(debugInfo, null, 2)}</pre>
+          </div>
+        )}
         {loading ? (
           <CircularProgress />
         ) : (
           <OrdersContainer>
             {orders.length === 0 ? (
-              <NoOrders>You have no orders yet.</NoOrders>
+              <NoOrders>No orders found</NoOrders>
             ) : (
               orders.map((order) => (
                 <OrderCard key={order._id}>
                   <OrderHeader>
                     <div>
-                      Order ID:{" "}
-                      <span style={{ color: "inherit", fontWeight: 400 }}>
-                        {order._id}
-                      </span>
+                      Order ID: <span style={{ fontWeight: 400 }}>{order._id}</span>
                     </div>
-                    <OrderStatus status={order.status}>
-                      {order.status}
+                    <OrderStatus status={order.status || "Payment Done"}>
+                      {order.status || "Payment Done"}
                     </OrderStatus>
                   </OrderHeader>
                   <OrderDetails>
-                    <div>
-                      Date: {new Date(order.createdAt).toLocaleString()}
-                    </div>
+                    <div>Date: {new Date(order.createdAt).toLocaleString()}</div>
                     <div>Address: {order.address}</div>
-                    <div>
-                      Total Amount: <b>${order.total_amount.toFixed(2)}</b>
-                    </div>
+                    <div>Total: <b>${(order.total_amount || 0).toFixed(2)}</b></div>
                   </OrderDetails>
                   <OrderProducts>
-                    <div
-                      style={{
-                        fontWeight: "600",
-                        fontSize: "16px",
-                        color: "inherit",
-                      }}
-                    >
-                      Products:
+                    <div style={{ fontWeight: "600", fontSize: "16px" }}>
+                      Products ({(order.products || []).length}):
                     </div>
-                    {order.products.map((item) => (
-                      <ProductItem key={item.product._id}>
-                        <ProductImage src={item.product.img} />
-                        <ProductInfo>
-                          <ProductName>{item.product.name}</ProductName>
-                          <ProductQty>Quantity: {item.quantity}</ProductQty>
-                        </ProductInfo>
-                        <div>${(item.product.price.org * item.quantity).toFixed(2)}</div>
-                      </ProductItem>
-                    ))}
+                    {(order.products || []).map((item, idx) => {
+                      const prod = item?.product || {};
+                      return (
+                        <ProductItem key={prod._id || `${order._id}-${idx}`}>
+                          <ProductImage src={prod.img || ""} alt={prod.name} />
+                          <ProductInfo>
+                            <ProductName>{prod.name}</ProductName>
+                            <ProductQty>Qty: {item.quantity}</ProductQty>
+                          </ProductInfo>
+                          <div>${((prod.price?.org || 0) * item.quantity).toFixed(2)}</div>
+                        </ProductItem>
+                      );
+                    })}
                   </OrderProducts>
                 </OrderCard>
               ))

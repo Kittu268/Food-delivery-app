@@ -11,6 +11,12 @@ app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true })); // for form data
 
+// Add logging middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
+
 app.use("/api/user/", UserRoutes);
 app.use("/api/food/", FoodRoutes);
 
@@ -18,6 +24,7 @@ app.use("/api/food/", FoodRoutes);
 app.use((err, req, res, next) => {
   const status = err.status || 500;
   const message = err.message || "Something went wrong";
+  console.error(`[ERROR] Status: ${status}, Message: ${message}`);
   return res.status(status).json({
     success: false,
     status,

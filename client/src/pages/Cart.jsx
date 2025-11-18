@@ -108,10 +108,6 @@ const ProDesc = styled.div`
   text-overflow: ellipsis;
   white-space: nowrap;
 `;
-const ProSize = styled.div`
-  font-size: 14px;
-  font-weight: 500;
-`;
 
 const Right = styled.div`
   flex: 1;
@@ -154,10 +150,21 @@ const Cart = () => {
   const getProducts = async () => {
     setLoading(true);
     const token = localStorage.getItem("foodeli-app-token");
-    await getCart(token).then((res) => {
-      setProducts(res.data);
+    try {
+      const res = await getCart(token);
+      setProducts(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch cart:", err);
+      dispatch(
+        openSnackbar({
+          message: "Failed to load cart items",
+          severity: "error",
+        })
+      );
+      setProducts([]);
+    } finally {
       setLoading(false);
-    });
+    }
   };
 
   const calculateSubtotal = () => {
@@ -174,6 +181,19 @@ const Cart = () => {
   const PlaceOrder = async () => {
     setButtonLoad(true);
     try {
+      console.log("========== PLACE ORDER ==========");
+      
+      if (!products || products.length === 0) {
+        dispatch(
+          openSnackbar({
+            message: "Cart is empty",
+            severity: "error",
+          })
+        );
+        setButtonLoad(false);
+        return;
+      }
+
       const isDeliveryDetailsFilled =
         deliveryDetails.firstName &&
         deliveryDetails.lastName &&
@@ -182,47 +202,82 @@ const Cart = () => {
         deliveryDetails.emailAddress;
 
       if (!isDeliveryDetailsFilled) {
-        // Show an error message or handle the situation where delivery details are incomplete
         dispatch(
           openSnackbar({
-            message: "Please fill in all required delivery details.",
+            message: "Please fill all delivery details",
             severity: "error",
           })
         );
+        setButtonLoad(false);
         return;
       }
 
       const token = localStorage.getItem("foodeli-app-token");
-      const totalAmount = calculateSubtotal().toFixed(2);
+      if (!token) {
+        dispatch(
+          openSnackbar({
+            message: "Please login again",
+            severity: "error",
+          })
+        );
+        setButtonLoad(false);
+        return;
+      }
+
+      const totalAmount = Number(calculateSubtotal().toFixed(2));
+      const orderProducts = (products || []).map((item) => ({
+        product: item?.product?._id || item?.product,
+        quantity: item?.quantity || 0,
+      }));
+
+      console.log("Order data:", { 
+        productsCount: orderProducts.length,
+        totalAmount,
+        address: deliveryDetails
+      });
+
       const orderDetails = {
-        products,
+        products: orderProducts,
         address: convertAddressToString(deliveryDetails),
         totalAmount,
       };
 
-      await placeOrder(token, orderDetails);
+      const response = await placeOrder(token, orderDetails);
+      console.log("✓ Order placed, response:", response.data);
+
       dispatch(
         openSnackbar({
-          message: "Order placed successfully",
+          message: "Order placed successfully!",
           severity: "success",
         })
       );
-      setButtonLoad(false);
-      // Clear the cart and update the UI
-      setReload(!reload);
+
+      setProducts([]);
+      setDeliveryDetails({
+        firstName: "",
+        lastName: "",
+        emailAddress: "",
+        phoneNumber: "",
+        completeAddress: "",
+      });
+
+      setTimeout(() => navigate("/orders"), 800);
     } catch (err) {
+      console.error("❌ Order error:", err.message);
       dispatch(
         openSnackbar({
-          message: "Failed to place order. Please try again.",
+          message: err?.response?.data?.message || err.message || "Failed to place order",
           severity: "error",
         })
       );
+    } finally {
       setButtonLoad(false);
     }
   };
 
   useEffect(() => {
     getProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reload]);
 
   const addCart = async (id) => {
@@ -286,7 +341,7 @@ const Cart = () => {
                     <TableItem></TableItem>
                   </Table>
                   {products.map((item) => (
-                    <Table>
+                    <Table key={item?.product?._id || Math.random()}>
                       <TableItem flex>
                         <Product>
                           <Img src={item?.product?.img} />
@@ -432,7 +487,7 @@ const Cart = () => {
                     </div>
                   </Delivery>
                   <Button
-                    text="Pace Order"
+                    text="Place Order"
                     small
                     onClick={PlaceOrder}
                     isLoading={buttonLoad}
@@ -447,6 +502,5 @@ const Cart = () => {
     </Container>
   );
 };
-
 
 export default Cart;
