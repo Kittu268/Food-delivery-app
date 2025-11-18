@@ -143,7 +143,7 @@ const Orders = () => {
   const fetchOrders = async () => {
     setLoading(true);
     const token = localStorage.getItem("foodeli-app-token");
-
+    
     try {
       if (!token) {
         throw new Error("No token");
@@ -153,78 +153,58 @@ const Orders = () => {
       console.log("Token:", token.substring(0, 30) + "...");
 
       const res = await getOrders(token);
-// --- UNIVERSAL DEEP ARRAY EXTRACTOR ---
-function findFirstArray(obj) {
-  if (!obj || typeof obj !== "object") return null;
-
-  // if obj itself is an array, return it
-  if (Array.isArray(obj)) return obj;
-
-  // search nested objects
-  for (const key of Object.keys(obj)) {
-    const val = obj[key];
-
-    if (Array.isArray(val)) {
-      return val; // found array
-    }
-
-    if (typeof val === "object") {
-      const nested = findFirstArray(val);
-      if (nested) return nested;
-    }
-  }
-
-  return null; // no array found
-}
-
-const ordersArray = findFirstArray(res.data);
-
-console.log("Extracted orders:", ordersArray);
-
-if (Array.isArray(ordersArray)) {
-  setOrders(ordersArray);
-} else {
-  console.warn("No array found in response, setting empty list.");
-  setOrders([]);
-}
-// --- END UNIVERSAL EXTRACTOR ---
-      const extracted = res.data?.orders;
-
-      setOrders(Array.isArray(extracted) ? extracted : []);
+      
       console.log("Response status:", res.status);
-      console.log("Response object keys:", Object.keys(res));
       console.log("Response.data:", res.data);
-      console.log("Response.data keys:", Object.keys(res.data || {}));
-      console.log("Response.data type:", typeof res.data);
-      console.log("Response.data.orders exists?", !!res.data?.orders);
-      console.log("Response.data.orders type:", typeof res.data?.orders);
 
-      let fetched = res.data?.orders;
+      // --- UNIVERSAL DEEP ARRAY EXTRACTOR ---
+      function findFirstArray(obj) {
+        if (!obj || typeof obj !== "object") return null;
 
-      console.log("Extracted 'orders':", fetched);
-      console.log("Is array?", Array.isArray(fetched));
+        // if obj itself is an array, return it
+        if (Array.isArray(obj)) return obj;
 
-      if (!Array.isArray(fetched)) {
-        console.warn("Not an array, setting to []");
-        fetched = [];
+        // search nested objects
+        for (const key of Object.keys(obj)) {
+          const val = obj[key];
+
+          if (Array.isArray(val)) {
+            return val; // found array
+          }
+
+          if (typeof val === "object") {
+            const nested = findFirstArray(val);
+            if (nested) return nested;
+          }
+        }
+
+        return null; // no array found
       }
 
-      console.log("Final fetched count:", fetched.length);
-      console.log("========== END FETCH ==========\n");
+      const ordersArray = findFirstArray(res.data);
 
+      console.log("Extracted orders:", ordersArray);
+
+      if (Array.isArray(ordersArray)) {
+        setOrders(ordersArray);
+      } else {
+        console.warn("No array found in response, setting empty list.");
+        setOrders([]);
+      }
+      // --- END UNIVERSAL EXTRACTOR ---
+
+      // Update debug info based on the new logic
       setDebugInfo({
         status: res.status,
         dataKeys: Object.keys(res.data || {}),
-        hasOrdersKey: !!res.data?.orders,
-        ordersType: typeof res.data?.orders,
-        ordersCount: Array.isArray(fetched) ? fetched.length : 0,
+        foundArray: Array.isArray(ordersArray),
+        ordersCount: Array.isArray(ordersArray) ? ordersArray.length : 0,
         timestamp: new Date().toLocaleTimeString(),
       });
 
-      setOrders(fetched);
     } catch (err) {
       console.error("❌ Fetch error:", err.message);
-
+      
       setDebugInfo({
         error: err.message,
         status: err?.response?.status,
@@ -252,13 +232,15 @@ if (Array.isArray(ordersArray)) {
       <Section>
         <Title>Your Orders</Title>
         {debugInfo && (
-          <div style={{
-            fontSize: "11px",
-            padding: "10px",
-            background: "#f5f5f5",
+          <div style={{ 
+            fontSize: "11px", 
+            padding: "10px", 
+            background: "#f5f5f5", 
             borderRadius: "4px",
             marginBottom: "15px",
-            border: "1px solid #ddd"
+            border: "1px solid #ddd",
+            maxWidth: "100%",
+            overflowX: "auto"
           }}>
             <pre style={{ margin: 0 }}>{JSON.stringify(debugInfo, null, 2)}</pre>
           </div>

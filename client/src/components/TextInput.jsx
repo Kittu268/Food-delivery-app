@@ -1,248 +1,107 @@
-import { CloseRounded, Visibility, VisibilityOff } from "@mui/icons-material";
-import React, { useState } from "react";
+import { CircularProgress } from "@mui/material";
+import React from "react";
 import styled from "styled-components";
 
-const Container = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  /* Use $small prop */
-  ${({ $small }) =>
-    $small &&
-    `
-    font-size: 8px;
-  `}
-`;
-
-const Label = styled.label`
-  font-size: 12px;
-  color: ${({ theme }) => theme.primary};
-  padding: 0px 4px;
-  ${({ error, theme }) =>
-    error &&
-    `
-    color: ${theme.red};
-  `}
-  /* Use $small prop */
-  ${({ $small }) =>
-    $small &&
-    `
-    font-size: 8px;
-  `}
-  ${({ popup, theme }) =>
-    popup &&
-    `
-  color: ${theme.popup_text_secondary};
-  `}
-`;
-
-const OutlinedInput = styled.div`
-  border-radius: 8px;
-  border: 0.5px solid ${({ theme }) => theme.text_secondary};
-  background-color: transparent;
-  color: ${({ theme }) => theme.text_primary};
-  outline: none;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  &:focus-within {
-    border-color: ${({ theme }) => theme.secondary};
-  }
-  ${({ error, theme }) =>
-    error &&
-    `
-    border-color: ${theme.red};
-  `}
-
-  ${({ chipableInput, height, theme }) =>
-    chipableInput &&
-    `
-    background: ${theme.card};
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    min-height: ${height}
-  `}
-
-  /* Use $small prop */
-  ${({ $small }) =>
-    $small &&
-    `
-    border-radius: 6px;
-    padding: 8px 10px;
-  `}
-
-  ${({ popup, theme }) =>
-    popup &&
-    `
-  color: ${theme.popup_text_secondary};
-  border: 0.5px solid ${theme.popup_text_secondary + 60};
-  `}
-`;
-
-const Input = styled.input`
-  width: 100%;
+const StyledButton = styled.div`
+  border-radius: 10px;
+  color: white;
   font-size: 14px;
-  outline: none;
-  border: none;
-  background-color: transparent;
-  color: ${({ theme }) => theme.primary};
-  &:focus {
-    outline: none;
-  }
-  /* Use $small prop */
-  ${({ $small }) =>
-    $small &&
-    `
-    font-size: 12px;
-  `}
-
-  ${({ popup, theme }) =>
-    popup &&
-    `
-  color: ${theme.popup_text_secondary};
-  `} ${({ theme }) => theme.popup_text_secondary};
-`;
-
-const Error = styled.p.withConfig({
-  shouldForwardProp: (prop) => prop !== "small" && prop !== "popup",
-})`
-  font-size: 12px;
-  margin: 0px 4px;
-  color: ${({ theme }) => theme.error};
-  ${({ small }) =>
-    small &&
-    `
-    font-size: 12px;
-  `}
-  ${({ popup, theme }) =>
-    popup &&
-    `
-    color: ${theme.popup_text_secondary};
-  `}
-`;
-
-
-const ChipWrapper = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-`;
-
-const Chip = styled.div`
-  padding: 5px 10px;
-  border-radius: 8px;
-  background: ${({ theme }) => theme.primary + 10};
-  color: ${({ theme }) => theme.primary};
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: min-content;
+  padding: 16px 26px;
+  box-shadow: 1px 20px 35px 0px ${({ theme }) => theme.primary + 40};
+  border: 1px solid ${({ theme }) => theme.primary};
+  @media (max-width: 600px) {
+    padding: 8px 12px;
+  }
+
+  ${({ type, theme }) =>
+    type === "secondary"
+      ? `
+  background: ${theme.secondary};
+border: 1px solid ${({ theme }) => theme.secondary};
+  `
+      : `
+  background: ${theme.primary};
+`}
+
+  ${({ $isDisabled }) =>
+    $isDisabled &&
+    `
+  opacity: 0.8;
+  cursor: not-allowed;
+
+  `}
+  ${({ $isLoading }) =>
+    $isLoading &&
+    `
+    opacity: 0.8;
+  cursor: not-allowed;
+`}
+${({ $flex }) =>
+    $flex &&
+    `
+    flex: 1;
+`}
+
+${({ $small }) =>
+    $small &&
+    `
+padding: 10px 28px;
+`}
+  ${({ $outlined, theme }) =>
+    $outlined &&
+    `
+background: transparent;
+color: ${theme.primary};
+  box-shadow: none;
+`}
+  ${({ $full }) =>
+    $full &&
+    `
+  width: 100%;`}
 `;
 
-const TextInput = ({
-  label,
-  placeholder,
-  name,
-  value,
-  error,
-  handelChange,
-  handleChange,
-  onChange,
-  textArea,
-  rows,
-  columns,
-  chipableInput,
-  chipableArray,
-  removeChip,
-  height,
+const Button = ({
+  text,
+  isLoading,
+  isDisabled,
+  rightIcon,
+  leftIcon,
+  type,
+  onClick,
+  flex,
   small,
-  popup,
-  password,
+  outlined,
+  full,
 }) => {
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleChangeInternal = (e) => {
-    const fn = handelChange || handleChange || onChange;
-    if (typeof fn === "function") fn(e);
-  };
-
   return (
-    // Pass prop as $small
-    <Container $small={small}>
-      {/* Pass prop as $small */}
-      <Label $small={small} popup={popup} error={error}>
-        {label}
-      </Label>
-      <OutlinedInput
-        // Pass prop as $small
-        $small={small}
-        popup={popup}
-        error={error}
-        chipableInput={chipableInput}
-        height={height}
-      >
-        {chipableInput ? (
-          <ChipWrapper>
-            {chipableArray.map((chip, index) => (
-              <Chip key={index}>
-                <span>{chip}</span>
-                <CloseRounded
-                  sx={{ fontSize: "14px" }}
-                  onClick={() => removeChip(name, index)}
-                />
-              </Chip>
-            ))}
-            <Input
-              placeholder={placeholder}
-              name={name}
-              value={value}
-              onChange={(e) => handelChange(e)}
-            />
-          </ChipWrapper>
-        ) : (
-          <>
-            <Input
-              popup={popup}
-              // Pass prop as $small
-              $small={small}
-              as={textArea ? "textarea" : "input"}
-              name={name}
-              rows={rows}
-              columns={columns}
-              placeholder={placeholder}
-              value={value}
-              onChange={handleChangeInternal}
-              type={password && !showPassword ? "password" : "text"}
-            />
-            {password && (
-              <>
-                {showPassword ? (
-                  <>
-                    <Visibility onClick={() => setShowPassword(false)} />
-                  </>
-                ) : (
-                  <>
-                    <VisibilityOff onClick={() => setShowPassword(true)} />
-                  </>
-                )}
-              </>
-            )}
-          </>
-        )}
-      </OutlinedInput>
-      {error && (
-        // Pass prop as $small
-        <Error $small={small} popup={popup}>
-          {error}
-        </Error>
+    <StyledButton
+      onClick={() => onClick && !isDisabled && !isLoading && onClick()}
+      $isDisabled={isDisabled}
+      type={type}
+      $isLoading={isLoading}
+      $flex={flex}
+      $small={small}
+      $outlined={outlined}
+      $full={full}
+    >
+      {isLoading && (
+        <CircularProgress
+          style={{ width: "18px", height: "18px", color: "inherit" }}
+        />
       )}
-    </Container>
+      {leftIcon}
+      {text}
+      {isLoading && <> . . .</>}
+      {rightIcon}
+    </StyledButton>
   );
 };
 
-export default TextInput;
+export default Button;
